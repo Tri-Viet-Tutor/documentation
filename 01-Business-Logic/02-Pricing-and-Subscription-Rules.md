@@ -1,70 +1,39 @@
-# Business Rule 02: Pricing Engine & Subscription Packages
+# Business Rule 02: Course Pricing, Payroll & Group Class Rules
 
-## 1. Mô hình Phí & Gói Dịch Vụ cho Gia Sư (Subscription / Credit Rules)
+## 1. Cơ chế Học Phí Khóa Học (Course Fee Structure)
 
-Gia sư kiếm tiền thông qua nhận lớp, nhưng cần duy trì **Gói dịch vụ (Subscription)** hoặc trả **Phí kết nối (Platform Fee)** cho Trung tâm.
+### 1.1. Giá Khóa học do Admin Thiết lập (Admin-Defined Pricing)
+- Học phí được tính **theo trọn gói Khóa học** (Một khóa học kéo dài nhiều tháng, bao gồm tổng số buổi học nhất định).
+- Admin Trung tâm trực tiếp cấu hình Giá tiền cho từng Khóa học ($P_{\text{course}}$) dựa trên Cấp học (Cấp 1, Cấp 2, Cấp 3), Môn học và Quy mô lớp.
+- Học viên thanh toán 100% Học phí Khóa học khi đăng ký mua khóa học.
 
-### 1.1. Cấu trúc Gói Dịch Vụ (Service Packages)
-Trung tâm đại diện Admin cung cấp các loại gói dịch vụ sau:
+### 1.2. Công thức Học phí cho Lớp Nhóm (Group Class Pricing)
+Đơn giá Khóa học ($P_{\text{course}}$) áp dụng các quy tắc quy mô lớp như sau:
 
-| Tên gói dịch vụ | Loại phí | Quyền lợi & Hạn ngạch | Đối tượng áp dụng |
-| :--- | :--- | :--- | :--- |
-| **Basic / Free** | 0 VNĐ | - Nhận tối đa 1 lớp/tháng.<br>- Phí hoa hồng kết nối: 15% / tổng giá trị hợp đồng lớp học. | Gia sư Tự do mới đăng ký |
-| **Pro Tutor (Tháng)** | 200,000 VNĐ / tháng | - Nhận lớp không giới hạn.<br>- Giảm phí hoa hồng kết nối xuống 5%.<br>- Ưu tiên xuất hiện trên bảng tin tìm kiếm. | Gia sư Tự do chuyên nghiệp |
-| **Official Tutor VIP** | Miễn phí gói (Do TT cấp) | - Nhận lớp ưu tiên từ Trung tâm xếp.<br>- Phí hoa hồng kết nối: 0% (Ăn lương trực tiếp từ Trung tâm hoặc hưởng 100% học phí theo quy ước hợp đồng Trung tâm). | Gia sư thuộc Hệ thống |
-
----
-
-## 2. Công Thức Tính Học Phí Lớp Học (Pricing Logic)
-
-Học phí được tính toán tự động theo công thức đa biến dựa trên các tham số: **Số lượng học viên (Lớp 1-1 hay Lớp Nhóm)**, **Hình thức (Online hay Offline)**, **Cấp độ bài học/Môn học** và **Trình độ gia sư**.
-
-### 2.1. Đơn giá cơ bản theo giờ (Base Hourly Rate - $P_{\text{base}}$)
-- Đơn giá cơ bản $P_{\text{base}}$ được thiết lập dựa trên cấp độ lớp (VD: Cấp 1, Cấp 2, Cấp 3, Luyện thi ĐH) và danh hiệu Gia sư (Sinh viên, Giảng viên/Giáo viên, Gia sư Hệ thống VIP).
-
-### 2.2. Công thức tổng quát tính Học phí 1 buổi ($T_{\text{session}}$)
-
-$$T_{\text{session}} = P_{\text{base}} \times K_{\text{mode}} \times K_{\text{group}}$$
-
-Trong đó:
-- $P_{\text{base}}$: Đơn giá gốc cho 1 học viên / 1 giờ học (Offline).
-- $K_{\text{mode}}$: Hệ số hình thức học (Online / Offline).
-- $K_{\text{group}}$: Hệ số quy mô nhóm học viên.
+- **Lớp 1-on-1 (1 Học viên)**: Học viên đóng 100% Giá Khóa học 1-1 chuẩn.
+- **Lớp Nhóm (Group Class - Từ 2 đến 8 Học viên)**:
+  - Học phí trên mỗi Học viên ($P_{\text{student}}$) được chiết khấu giảm dần theo quy mô nhóm so với lớp 1-1:
+    $$P_{\text{student}} = P_{\text{1on1\_base}} \times \left(1 - \text{Discount}_{\text{group}}\right)$$
+  - *Quy định chiết khấu nhóm*:
+    - **Lớp 2 - 3 Học viên**: Chiết khấu 20% học phí/học viên.
+    - **Lớp 4 - 8 Học viên**: Chiết khấu 35% - 40% học phí/học viên.
 
 ---
 
-### 2.3. Chi tiết các Hệ số Tính toán (Pricing Multipliers)
+## 2. Quy tắc Quy mô Lớp Nhóm (Group Class Capacity Rules)
 
-#### A. Hệ số Hình Thức Học ($K_{\text{mode}}$)
-- **Offline (Học trực tiếp tại nhà/trung tâm)**: $K_{\text{mode}} = 1.0$ (Bao gồm chi phí đi lại của gia sư).
-- **Online (Học qua Video Call hệ thống)**: $K_{\text{mode}} = 0.85$ (Giảm 15% chi phí do không mất phí di chuyển).
+Dự án quy định chặt chẽ giới hạn sĩ số cho mọi Lớp Nhóm mở trên hệ thống:
 
-#### B. Hệ số Quy Mô Lớp Học ($K_{\text{group}}$)
-Quy tắc tính học phí theo quy mô lớp áp dụng nguyên tắc **Chiết khấu theo số lượng (Volume Discount for Students & Increased Tutor Yield)**:
-- **Lớp 1-on-1 (1 Học viên)**: 
-  - $K_{\text{group}} = 1.0$
-  - Mỗi bên trả/nhận đúng 100% đơn giá gốc.
-
-- **Lớp Nhóm (Group Class - Ví dụ: Nhóm 5 học viên)**:
-  - **Tổng học phí cả nhóm trả ($T_{\text{group}}$)**: Áp dụng công thức lũy tiến giảm dần cho từng học viên bổ sung.
-  - Hệ số tổng nhóm $K_{\text{group}}(N) = 1 + (N - 1) \times \alpha$ (với $\alpha = 0.5$ là hệ số tăng thêm cho mỗi học viên thứ 2 trở đi).
-  - **Ví dụ với Nhóm 5 học viên ($N = 5$)**:
-    $$K_{\text{group}}(5) = 1 + (5 - 1) \times 0.5 = 3.0$$
-  - **Tính tiền cụ thể**:
-    - **Tổng học phí lớp nhận từ 5 học viên**: $3.0 \times P_{\text{base}}$ (Gia sư thu gấp 3 lần so với dạy 1-1).
-    - **Học phí MỖI HỌC VIÊN phải trả**: 
-      $$\text{Fee Per Student} = \frac{3.0 \times P_{\text{base}}}{5} = 0.6 \times P_{\text{base}}$$
-      *(Mỗi học viên trong nhóm 5 chỉ cần trả **60%** giá tiền so với học 1-1 $\to$ Tiết kiệm 40% chi phí).*
+| Chỉ số Quy mô | Giá trị | Quy tắc Xử lý Nghiệp vụ |
+| :--- | :---: | :--- |
+| **Sĩ số Tối đa (Max Capacity)** | **8 Học viên** | Hệ thống tự động khóa đăng ký (Full Slot) khi lớp đạt đủ 8 học viên. Không cho phép nhận thêm. |
+| **Sĩ số Tối thiểu (Min Capacity)** | **2 Học viên** | Đến mốc thời hạn chốt mở lớp (vd: 3 ngày trước ngày khai giảng):<br>- Nếu sĩ số $\ge 2$: Lớp đủ điều kiện kích hoạt, Trung tâm phân công Gia sư.<br>- Nếu sĩ số $< 2$ (chỉ có 1 HV): Hệ thống báo cho Admin để dời ngày khai giảng hoặc hoàn tiền/chuyển lớp cho học viên. |
 
 ---
 
-## 3. Bảng Ví Dụ Minh Họa Tính Tiền (Pricing Matrix Case Study)
+## 3. Quy tắc Lương Gia Sư (Tutor Payroll Rules)
 
-*Giả định Đơn giá gốc $P_{\text{base}} = 200,000$ VNĐ/giờ (Lớp Cấp 3).*
-
-| Số lượng HV ($N$) | Hình thức | $K_{\text{mode}}$ | $K_{\text{group}}$ | Tổng học phí Lớp/Giờ | Học phí mỗi HV trả/Giờ | Thu nhập Gia sư/Giờ (Basic) |
-| :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **1 (Lớp 1-1)** | Offline | 1.0 | 1.0 | 200,000 VNĐ | **200,000 VNĐ** | 170,000 VNĐ (trừ 15% phí) |
-| **1 (Lớp 1-1)** | Online | 0.85 | 1.0 | 170,000 VNĐ | **170,000 VNĐ** | 144,500 VNĐ (trừ 15% phí) |
-| **5 (Nhóm 5)** | Offline | 1.0 | 3.0 | 600,000 VNĐ | **120,000 VNĐ** (-40%) | 510,000 VNĐ (trừ 15% phí) |
-| **5 (Nhóm 5)** | Online | 0.85 | 3.0 | 510,000 VNĐ | **102,000 VNĐ** (-40%) | 433,500 VNĐ (trừ 15% phí) |
+- **Hình thức trả lương**: Gia sư nhận **Lương cố định theo tháng** từ Trung tâm.
+- Lương tháng của gia sư được tính bằng:
+  $$\text{Lương Tháng} = \text{Lương Cứng Hợp Đồng} + \left(\text{Số Ca Dạy Thực Tế} \times \text{Đơn Giá Ca Dạy}\right)$$
+- Không phụ thuộc vào việc lớp học đó là Cấp 1, Cấp 2 hay Cấp 3 (vì giá khóa học đã do Admin quản lý và thu về Trung tâm).
