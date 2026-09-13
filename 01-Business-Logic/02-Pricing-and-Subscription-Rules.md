@@ -1,39 +1,98 @@
-# Business Rule 02: Course Pricing, Payroll & Group Class Rules
+# Business Rule 02: Học phí, sĩ số lớp & Lương gia sư
 
-## 1. Cơ chế Học Phí Khóa Học (Course Fee Structure)
-
-### 1.1. Giá Khóa học do Admin Thiết lập (Admin-Defined Pricing)
-- Học phí được tính **theo trọn gói Khóa học** (Một khóa học kéo dài nhiều tháng, bao gồm tổng số buổi học nhất định).
-- Admin Trung tâm trực tiếp cấu hình Giá tiền cho từng Khóa học ($P_{\text{course}}$) dựa trên Cấp học (Cấp 1, Cấp 2, Cấp 3), Môn học và Quy mô lớp.
-- Học viên thanh toán 100% Học phí Khóa học khi đăng ký mua khóa học.
-
-### 1.2. Công thức Học phí cho Lớp Nhóm (Group Class Pricing)
-Đơn giá Khóa học ($P_{\text{course}}$) áp dụng các quy tắc quy mô lớp như sau:
-
-- **Lớp 1-on-1 (1 Học viên)**: Học viên đóng 100% Giá Khóa học 1-1 chuẩn.
-- **Lớp Nhóm (Group Class - Từ 2 đến 8 Học viên)**:
-  - Học phí trên mỗi Học viên ($P_{\text{student}}$) được chiết khấu giảm dần theo quy mô nhóm so với lớp 1-1:
-    $$P_{\text{student}} = P_{\text{1on1\_base}} \times \left(1 - \text{Discount}_{\text{group}}\right)$$
-  - *Quy định chiết khấu nhóm*:
-    - **Lớp 2 - 3 Học viên**: Chiết khấu 20% học phí/học viên.
-    - **Lớp 4 - 8 Học viên**: Chiết khấu 35% - 40% học phí/học viên.
+Tài liệu này chốt **cách tính tiền** cho học viên và **cách tính lương** cho gia sư. Hệ thống **không bán gói subscription**.
 
 ---
 
-## 2. Quy tắc Quy mô Lớp Nhóm (Group Class Capacity Rules)
+## 1. Nguyên tắc thu tiền (BR-02)
 
-Dự án quy định chặt chẽ giới hạn sĩ số cho mọi Lớp Nhóm mở trên hệ thống:
-
-| Chỉ số Quy mô | Giá trị | Quy tắc Xử lý Nghiệp vụ |
-| :--- | :---: | :--- |
-| **Sĩ số Tối đa (Max Capacity)** | **8 Học viên** | Hệ thống tự động khóa đăng ký (Full Slot) khi lớp đạt đủ 8 học viên. Không cho phép nhận thêm. |
-| **Sĩ số Tối thiểu (Min Capacity)** | **2 Học viên** | Đến mốc thời hạn chốt mở lớp (vd: 3 ngày trước ngày khai giảng):<br>- Nếu sĩ số $\ge 2$: Lớp đủ điều kiện kích hoạt, Trung tâm phân công Gia sư.<br>- Nếu sĩ số $< 2$ (chỉ có 1 HV): Hệ thống báo cho Admin để dời ngày khai giảng hoặc hoàn tiền/chuyển lớp cho học viên. |
+| Mã | Quy tắc |
+| :--- | :--- |
+| **BR-02.01** | Học phí thu **theo trọn gói khóa/lớp**, không thu theo buổi lẻ khi đăng ký. |
+| **BR-02.02** | Học viên phải thanh toán **100%** học phí tại thời điểm đăng ký. Chỉ khi thanh toán thành công mới tạo `Enrollment`. |
+| **BR-02.03** | Admin cấu hình **học phí gốc 1-1** \(P_{\text{1on1}}\) theo môn, cấp học (Cấp 1 / 2 / 3) và hình thức (Online / Offline). |
+| **BR-02.04** | Giá học viên phải trả được **chốt lúc đăng ký**. Lớp lớn thêm sau đó **không** tính lại tiền đã đóng. |
+| **BR-02.05** | Không có gói tháng/năm cho gia sư. Mọi doanh thu là học phí học viên. |
 
 ---
 
-## 3. Quy tắc Lương Gia Sư (Tutor Payroll Rules)
+## 2. Hai loại lớp
 
-- **Hình thức trả lương**: Gia sư nhận **Lương cố định theo tháng** từ Trung tâm.
-- Lương tháng của gia sư được tính bằng:
-  $$\text{Lương Tháng} = \text{Lương Cứng Hợp Đồng} + \left(\text{Số Ca Dạy Thực Tế} \times \text{Đơn Giá Ca Dạy}\right)$$
-- Không phụ thuộc vào việc lớp học đó là Cấp 1, Cấp 2 hay Cấp 3 (vì giá khóa học đã do Admin quản lý và thu về Trung tâm).
+Mỗi lớp do Admin tạo phải chọn đúng **một** loại. Hai loại **không dùng chung** quy tắc sĩ số.
+
+| Loại lớp | Mã | Sĩ số min | Sĩ số max | Khi nào được phân công gia sư |
+| :--- | :--- | :---: | :---: | :--- |
+| **1 kèm 1** | `ONE_ON_ONE` | 1 | 1 | Ngay sau khi 1 học viên thanh toán thành công. |
+| **Lớp nhóm** | `GROUP` | 2 | 8 | Sau mốc chốt đăng ký, khi sĩ số \(\ge 2\). |
+
+**BR-02.10** — Hệ thống khóa đăng ký (`FULL`) khi:
+
+- `ONE_ON_ONE`: đã có 1 enrollment thành công.
+- `GROUP`: đã có 8 enrollment thành công.
+
+---
+
+## 3. Bảng chiết khấu nhóm (cố định)
+
+Học phí mỗi học viên:
+
+\[
+P_{\text{student}} = P_{\text{1on1}} \times (1 - D)
+\]
+
+\(D\) lấy **đúng** theo bảng, không dùng khoảng 35–40%.
+
+| Sĩ số **tại lúc học viên đăng ký** | Chiết khấu \(D\) | Học phí / học viên |
+| :---: | :---: | :--- |
+| 1 (`ONE_ON_ONE`) | 0% | \(100\% \times P_{\text{1on1}}\) |
+| 2 – 3 | 20% | \(80\% \times P_{\text{1on1}}\) |
+| 4 – 5 | 35% | \(65\% \times P_{\text{1on1}}\) |
+| 6 – 8 | 40% | \(60\% \times P_{\text{1on1}}\) |
+
+**Ví dụ:** \(P_{\text{1on1}} = 8.000.000đ\). Học viên đăng ký khi lớp đang có 3 người (sẽ thành 4) → bậc 4–5 → đóng \(5.200.000đ\). Học viên đã đóng trước đó theo bậc 2–3 **không** được hoàn thêm.
+
+**BR-02.11** — Bậc chiết khấu tính theo sĩ số **sau khi** enrollment này được ghi nhận (sĩ số hiện tại + 1).
+
+---
+
+## 4. Mốc chốt mở lớp nhóm (BR-02.20)
+
+Admin đặt **hạn chốt đăng ký** (mặc định: **3 ngày** trước ngày khai giảng).
+
+| Kết quả tại hạn chốt | Xử lý |
+| :--- | :--- |
+| Sĩ số \(\ge 2\) và \(\le 8\) | Lớp đủ điều kiện → Admin phân công gia sư → chuyển `ASSIGNED`. |
+| Sĩ số \(= 0\) | Lớp `CANCELLED`. Không phát sinh hoàn tiền. |
+| Sĩ số \(= 1\) | Lớp `FAILED_TO_OPEN`. Admin chọn: **dời ngày khai giảng** (mở lại đăng ký) **hoặc hoàn 100%** cho học viên **hoặc chuyển sang lớp 1-1** nếu học viên đồng ý. |
+
+Lớp `ONE_ON_ONE` **không** dùng mốc sĩ số tối thiểu 2.
+
+---
+
+## 5. Hoàn tiền
+
+| Mã | Trường hợp | Tỷ lệ hoàn |
+| :--- | :--- | :---: |
+| **BR-02.30** | Lớp `FAILED_TO_OPEN` hoặc Admin hủy lớp trước khai giảng | 100% |
+| **BR-02.31** | Học viên chủ động hủy **trước hạn chốt**, lớp chưa `ASSIGNED` | 100% |
+| **BR-02.32** | Học viên hủy **sau khi** lớp đã `ASSIGNED` / `IN_PROGRESS` | 0% (trừ khi Admin duyệt ngoại lệ) |
+| **BR-02.33** | Thanh toán thất bại / hết hạn phiên thanh toán | Không tạo enrollment |
+
+---
+
+## 6. Lương gia sư (BR-02.40)
+
+Gia sư nhận **lương tháng** từ Trung tâm, không chia % học phí lớp.
+
+\[
+\text{Lương tháng} = \text{Lương cứng HĐ} + (\text{Số buổi dạy hợp lệ} \times \text{Đơn giá buổi})
+\]
+
+| Mã | Quy tắc |
+| :--- | :--- |
+| **BR-02.41** | Lương **không** phụ thuộc cấp học / học phí học viên. Đơn giá buổi do Admin cấu hình theo hợp đồng gia sư. |
+| **BR-02.42** | **Buổi dạy hợp lệ** = buổi có trạng thái `COMPLETED` và gia sư đó là người dạy (kể cả dạy thay). |
+| **BR-02.43** | Gia sư **gốc** không nhận đơn giá buổi nếu buổi đó do người khác dạy thay. |
+| **BR-02.44** | Gia sư **dạy thay** nhận đơn giá buổi cho buổi đó; lương cứng vẫn theo hợp đồng của từng người. |
+| **BR-02.45** | Buổi gia sư vắng không có người dạy thay: buổi `CANCELLED` hoặc chuyển học bù; **không** tính đơn giá buổi cho gia sư gốc. |
+| **BR-02.46** | Admin chốt bảng lương theo tháng dương lịch. Gia sư chỉ được xem bảng lương của mình. |

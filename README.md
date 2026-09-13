@@ -2,24 +2,36 @@
 
 Tài liệu thiết kế hệ thống và quy tắc nghiệp vụ cho dự án **Trung tâm Gia sư VietTriTutor**.
 
-## Cấu trúc Thư mục Tài liệu (Directory Structure)
+Mô hình: **trung tâm quản lý tập trung** — học viên đăng ký lớp do Admin mở, Admin phân công gia sư Trung tâm, không có gia sư freelance, không bán gói subscription.
+
+## Cấu trúc thư mục tài liệu
 
 ```text
 documentation/
 ├── README.md
 ├── 00-Product-Definition/
-└── 01-Business-Logic/
-    ├── 01-User-Roles-and-Permissions.md
-    ├── 02-Pricing-and-Subscription-Rules.md
-    ├── 03-Scheduling-and-Conflict-Validation.md
-    └── 04-Matching-and-Class-Management.md
+├── 01-Business-Logic/
+│   ├── 01-User-Roles-and-Permissions.md
+│   ├── 02-Pricing-and-Subscription-Rules.md
+│   ├── 03-Scheduling-and-Conflict-Validation.md
+│   └── 04-Matching-and-Class-Management.md
+└── 02-System-Architecture/
+    └── 01-Project-Structure-React-SpringBoot.md
 ```
 
-### Mô tả Thư mục & Tài liệu:
+### `01-Business-Logic/` — quy tắc nghiệp vụ
 
-- **`00-Product-Definition/`**: Thư mục chứa tài liệu định nghĩa sản phẩm, tầm nhìn và yêu cầu bài toán tổng quan.
-- **`01-Business-Logic/`**: Thư mục chứa các quy tắc nghiệp vụ cốt lõi:
-  - **`01-User-Roles-and-Permissions.md`**: Định nghĩa vai trò (Admin Trung tâm, Gia sư Trung tâm, Học viên) và mô hình quản lý tập trung.
-  - **`02-Pricing-and-Subscription-Rules.md`**: Quy tắc giá Khóa học, cơ chế lương tháng cho Gia sư và quy mô lớp nhóm (2 - 8 học viên).
-  - **`03-Scheduling-and-Conflict-Validation.md`**: Quy tắc lịch học (2-4-6, 3-5-7), thuật toán chặn trùng lịch khi xếp gia sư và quy trình dời lịch.
-  - **`04-Matching-and-Class-Management.md`**: Vòng đời khóa học, điểm danh Online/Offline và lộ trình tính năng Video Call.
+| File | Nội dung đã chốt |
+| :--- | :--- |
+| **01-User-Roles-and-Permissions.md** | Thuật ngữ (Khóa/Lớp/Buổi), 3 vai trò, ma trận phân quyền. Học viên **không** tự chọn gia sư. |
+| **02-Pricing-and-Subscription-Rules.md** | Lớp 1-1 và lớp nhóm 2–8, bảng chiết khấu cố định, hoàn tiền, lương tháng (cứng + buổi dạy hợp lệ). |
+| **03-Scheduling-and-Conflict-Validation.md** | Mẫu lịch 2-4-6 / 3-5-7 / 7-CN, khung giờ, chặn trùng gia sư & học viên, xin nghỉ ≥24h / &lt;24h. |
+| **04-Matching-and-Class-Management.md** | Vòng đời lớp & buổi, điểm danh Online/Offline, Video Call là giai đoạn sau MVP. |
+
+### `02-System-Architecture/` — kiến trúc triển khai
+
+- **`01-Project-Structure-React-SpringBoot.md`**: Cấu trúc repo **React (Vite + TypeScript)** + **Java Spring Boot 3**, module backend theo nghiệp vụ, REST API, thứ tự dựng MVP.
+
+### `00-Product-Definition/`
+
+Chỗ dành cho tầm nhìn sản phẩm và yêu cầu tổng quan (chưa viết trong bước này).
